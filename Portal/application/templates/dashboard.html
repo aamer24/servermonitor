@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Server Monitor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>  
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" integrity="sha384-0evSXbVzTVFTJwvtQveJjxqc9T7vcCIGfDoYOZHSmIwGk/zQCHs7k/+EvzETjmuvQ" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-OgqUQ10IKlTEzLBWrYfNqcvzbINEXIKCEfbVBqpu2q6T7YCv9EJyZCJQjEjEyQ==" crossorigin="anonymous"></script>
+
+</head>
+<body>
+   
+  <div class="container">
+    <div class="data-container">
+
+            <div id="charts">
+                <canvas id="cpu-chart"></canvas>
+                <canvas id="memory-chart"></canvas>
+                <canvas id="disk-chart"></canvas>
+              </div>        <div id="memory_chart"></div>
+          
+</div>
+<div class="right-rectangle">
+  <div class="chat-container">
+    <a class="nav-link active" href="http://127.0.0.1:5000/">Home</a>
+    <a class="nav-link" href="http://127.0.0.1:5000/dashboard?hostname=MAY">Dashbaord</a>
+    <br>
+  <form id="filter-form">
+    <div class="mb-3">
+      <label for="hostname" class="form-label">Hostname:</label>
+      <br>
+      <select class="form-select" id="hostname" name="hostname">
+        <option value="">Reset Filter</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+
+<nav class="nav justify-content-end">
+
+ 
+</nav>
+</div>
+</div>
+
+
+<script>
+    var server_data = {{ server_data|safe }};  var timestamps = server_data.map(function(data) {
+        return data.timestamp;
+    });
+
+    var formattedTimestamps = timestamps.map(function(timestamp) {
+        return new Date(timestamp).getTime();
+    });
+
+    function formatTimestamp(timestamp) {
+if (moment) { // Check if Moment.js is available
+return moment(timestamp).format('YYYY-MM-DD HH:mm:ss');  // Customize format as needed
+} else {
+// Handle the case where Moment.js is not available
+console.warn("Moment.js is not loaded. Timestamp formatting is disabled.");
+return timestamp; // Return the original timestamp
+}
+}
+
+    // Extract data for each chart
+var cpuData = server_data.map(function(item) {
+return item.cpu_usage;
+});
+var memoryData = server_data.map(function(item) {
+return item.memory_usage;
+});
+var diskData = server_data.map(function(item) {
+return item.disk_usage;
+});
+
+var timestamps = server_data.map(function(data) {
+return formatTimestamp(data.timestamp); // Optional: Use formatTimestamp function
+});
+
+// Create separate chart contexts for each chart
+var cpuCtx = document.getElementById('cpu-chart').getContext('2d');
+var memoryCtx = document.getElementById('memory-chart').getContext('2d');
+var diskCtx = document.getElementById('disk-chart').getContext('2d');
+
+// Create separate Chart.js instances for each chart
+var cpuChart = new Chart(cpuCtx, {
+type: 'line',
+data: {
+labels: timestamps,
+datasets: [{
+  label: 'CPU Usage (%)',
+  data: cpuData,
+  borderColor: 'red',
+  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+}]
+},
+options: {
+scales: {
+  yAxes: [{
+    ticks: {
+      min: 0,
+      max: 100 // Adjust max value based on your expected CPU usage range
+    }
+  }]
+}
+}
+});
+
+var memoryChart = new Chart(memoryCtx, {
+type: 'line',
+data: {
+labels: timestamps,
+datasets: [{
+  label: 'Memory Usage (%)',
+  data: memoryData,
+  borderColor: 'blue',
+  backgroundColor: 'rgba(54, 162, 235, 0.2)',
+}]
+},
+options: {
+scales: {
+  yAxes: [{
+    ticks: {
+      min: 0,
+      max: 100 // Adjust max value based on your expected memory usage range
+    }
+  }]
+}
+}
+});
+
+var diskChart = new Chart(diskCtx, {
+type: 'line',
+data: {
+labels: timestamps,
+datasets: [{
+  label: 'Disk Usage (%)',
+  data: diskData,
+  borderColor: 'green',
+  backgroundColor: 'rgba(75, 192, 192, 0.2)',
+}]
+},
+options: {
+scales: {
+  yAxes: [{
+    ticks: {
+      min: 0,
+      max: 100 // Adjust max value based on your expected disk usage range
+    }
+  }]
+}
+}
+});
+
+
+    const hostnameSelect = document.getElementById('hostname');
+
+    // Function to populate the hostname dropdown menu with distinct values
+    function populateHostnameDropdown() {
+      const uniqueHostnames = new Set(server_data.map(item => item.hostname));
+
+      uniqueHostnames.forEach(hostname => {
+        const option = document.createElement('option');
+        option.value = hostname;
+        option.text = hostname;
+        hostnameSelect.appendChild(option);
+      });
+    }
+
+    populateHostnameDropdown();
+
+    const filterForm = document.getElementById('filter-form');
+    filterForm.addEventListener('submit', function(event) {
+  // Prevent default form submission behavior (avoids full page reload)
+  event.preventDefault();
+
+  // Gather form data for GET request
+  const hostname = document.getElementById('hostname').value;
+  //const startDateString = document.getElementById('start_date').value;
+  //const endDateString = documentgetElementById('end_date').value;
+
+  // Construct the GET request URL with query parameters
+  let url = new URL(window.location.href); // Use current URL as base
+  url.searchParams.set('hostname', hostname);  // Add hostname filter
+  //url.searchParams.set('start_date', startDateString); // Add start date
+  //url.searchParams.set('end_date', endDateString);   // Add end date
+
+  // Option 1: Manual form submission using window.location
+  // (Uncomment if preferred, but consider server-side filtering advantages)
+ window.location.href = url.toString();  
+    });
+</script>
+
+</body>

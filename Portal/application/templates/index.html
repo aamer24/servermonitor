@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Server Monitor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.js"></script>
+</head>
+<body>
+   
+  <div class="container">
+  
+    
+        <div class="data-container">
+        
+    {% for hostname in data.keys() %}
+
+        <table class="data-table" id="{{ hostname }}-table"></table>
+    {% endfor %}
+</div>
+<div class="right-rectangle">
+  <div class="chat-container">
+    <nav class="nav justify-content-end">
+      <a class="nav-link active" href="http://127.0.0.1:5000/">Home</a>
+      <a class="nav-link" href="http://127.0.0.1:5000/dashboard">Dashbaord</a>
+     
+    </nav>
+    <div class="chat-history" id="chat-box"></div>
+    <div class="chat-form">
+      <input type="text" name="message-input" id="message-input" placeholder="Enter your WMI query or 'quit' to exit">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+  </div>
+</div>
+
+
+    <script>
+
+function formatTimestamp(timestamp) {
+        // Get current time in milliseconds
+        const now = new Date(); 
+        const threeHoursAgo = now.getHours() - 3;  // Calculate hours 3 hours before
+      // Adjust for negative values or exceeding 24 hours
+      if (threeHoursAgo < 0) {
+        now.setDate(now.getDate() - 1);  // Go back one day
+        now.setHours(threeHoursAgo + 24);  // Add remaining hours to the previous day
+      } else if (threeHoursAgo > 23) {
+        now.setDate(now.getDate() + 1);  // Go forward one day
+        now.setHours(threeHoursAgo - 24);  // Adjust hours within the new day
+      } else {
+        // Hours are within current day (0 to 23)
+        now.setHours(threeHoursAgo);
+      }
+
+        // Convert timestamp string to Date object (assuming format is YYYY-MM-DD HH:MM:SS)
+        const timestampDate = new Date(timestamp);
+
+        // Calculate difference in milliseconds
+        const delta = now - timestampDate.getTime();
+
+        // Define thresholds in milliseconds
+        const oneMinute = 60 * 1000;
+        const oneHour = oneMinute * 60;
+
+        // Format timestamp based on difference
+        let timestampDisplay;
+        if (delta < oneMinute) {
+          timestampDisplay = `${Math.floor(delta / 1000)} second(s) ago`; // Show seconds
+        } else if (delta < oneHour) {
+          const minutes = Math.floor(delta / oneMinute);
+          timestampDisplay = `${minutes} minute(s) ago`; // Show minutes
+        } else {
+          // Leverage time zone offset for accurate display in Saudi Arabia, Riyadh (Asia/Riyadh)
+          const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Riyadh' };
+          timestampDisplay = timestampDate.toLocaleString('en-US', options);
+        }
+
+        return timestampDisplay;
+      }
+
+        function refreshData() {
+            {% for hostname in data.keys() %}
+                $.getJSON(`/data/{{ hostname }}`, function(data) {
+                    updateTableData('{{ hostname }}', data);
+                });
+            {% endfor %}
+        }
+
+
+        function updateTableData(hostname, data) {
+            const table = document.getElementById(`${hostname}-table`);
+            let tableContent = `
+                <tr><td>Hostname:</td><td>${data.hostname}</td></tr>
+                <tr><td>IP Address:</td><td>${data.ip_address}</td></tr>
+                <tr><td>CPU Usage:</td><td>${data.cpu_usage}</td></tr>
+                <tr><td>Memory Usage:</td><td>${data.memory_usage}</td></tr>
+                <tr><td>Disk Usage:</td><td>${data.disk_usage}</td></tr>
+                <tr><td>Timestamp:</td><td>${formatTimestamp(data.timestamp)}</td></tr>
+            `;
+             // Add service status rows
+  tableContent += `<tr><td>Services:</td><td>`;
+
+    let firstService = true;
+  for (const service of data.services) {
+    const color = service.value === 1 ? "green" :
+              service.value === -1 ? "orange" : "red";
+    if (firstService) {
+      tableContent += `<span style="color: ${color}">${service.name}</span>`;
+      firstService = false;
+    } else {
+      tableContent += ` - <span style="color: ${color}">${service.name}</span>`;
+    }
+  }
+  tableContent += `</td></tr>`;
+
+  table.innerHTML = tableContent;
+
+        }
+        
+
+        setInterval(refreshData, 10000); // Refresh every 10 seconds
+        refreshData(); // Initial data fetch
+
+        var socket = io();
+    
+        function sendMessage() {
+          var message = document.getElementById('message-input').value;
+          socket.emit('chat message', message);
+          document.getElementById('message-input').value = '';
+        }
+    
+        socket.on('chat message', function(data) {
+          var chatBox = document.getElementById('chat-box');
+          chatBox.innerHTML += data + '<br>';
+        });
+      </script>
+</body>
+</html>

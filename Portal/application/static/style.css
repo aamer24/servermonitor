@@ -1,0 +1,137 @@
+/* style.css */
+#charts {
+  display: flex;  /* Enables horizontal layout for child elements */
+  width: 1200px; /* Adjust width to fit your needs */
+}
+canvas {
+  max-width: 400px; /* Set a maximum width for all canvas elements */
+  width: 100%; /* Allow the canvas to fill available width within its container */
+}
+
+@media (max-width: 768px) {
+  /* Target screens less than 768px wide */
+  canvas {
+    max-width: 400px; /* Adjust maximum width for smaller screens */
+  }
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #222; /* Dark background */
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  margin: 0 auto; /* Center horizontally */
+}
+
+.heading {
+  color: #fff; /* White text */
+  text-align: center;
+  padding: 20px;
+}
+
+.data-container {
+  flex: 1; /* Take up remaining space */
+  display: flex;
+  flex-wrap: wrap; /* Wrap tables onto multiple lines */
+  justify-content: space-between; /* Spread tables evenly */
+  padding: 20px;
+}
+
+.data-table {
+  width: calc(33% - 20px); /* Adjust for margins and responsiveness */
+  margin: 10px;
+  border-radius: 5px;
+  background-color: #333; /* Darker gray for tables */
+  color: #fff; /* White text for tables */
+  padding: 15px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+  /* Set a maximum height for the table */
+  max-height: 200px; /* Adjust as desired */
+  /* Optionally, set overflow to auto for vertical scrolling within the table */
+  overflow-y: auto;
+}
+
+.data-table th,
+.data-table td {
+  padding: 5px;
+  text-align: left;
+}
+
+.right-rectangle {
+  width: 20%; /* Adjust width as desired */
+  height: 100%;
+  background-color: #111; /* Slightly darker background for right rectangle */
+  padding: 20px;
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+}
+
+a {text-decoration: none;}
+
+.nav-link {
+  display: block;  /* Make links appear on separate lines */
+  padding: 0.5rem 1rem;  /* Adjust padding for spacing */
+  background-color: #333;  /* Dark gray background */
+  color: #fff;  /* White text color */
+}
+.nav-link:hover {
+  background-color: #808080;  /* Light gray background on hover */
+}
+
+.chat-container {
+  flex: 1; /* Take up remaining space within right-rectangle */
+  background-color: #333; /* Darker gray for chat area */
+  color: #fff; /* White text for chat area */
+  border-radius: 5px;
+  padding: 10px;
+  overflow-y: auto; /* Enable scrolling for chat history */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+.chat-history {
+  margin-bottom: 10px; /* Add space between chat history and chat form */
+}
+
+.chat-history p {
+  margin: 5px 0; /* Add spacing between messages */
+  padding: 5px 10px; /* Add padding for readability */
+  border-radius: 5px; /* Rounded corners for messages */
+}
+
+.user {
+  background-color: #444; /* Darker background for user messages */
+}
+
+.chatbot {
+  background-color: #007bff; /* Blue background for chatbot messages */
+}
+
+.chat-form {
+  display: flex; /* Arrange input and button horizontally */
+}
+
+.chat-form input[type="text"] {
+  flex: 1; /* Input field takes up most space */
+  padding: 5px;
+  background-color: #222; /* Dark background for input field (matches body background) */
+  color: #fff; /* White text for input field */
+  border: 1px solid #444; /* Darker gray border for input field */
+  border-radius: 3px; /* Rounded corners */
+}
+
+.chat-form button {
+  margin-left: 5px; /* Add space between input and button */
+  padding: 5px 10px;
+  background-color: #007bff; /* Blue background for button */
+  color: #fff; /* White text for button */
+  border: none; /* Remove button border */
+  border-radius: 3px; /* Rounded corners */
+  cursor: pointer; /* Indicate clickable action */
+}
